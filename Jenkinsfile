@@ -8,39 +8,41 @@ pipeline {
     environment {
         ENV_VARS = credentials('ENV_CONTENT')  // This loads .env content
     }
+
     stages {
         stage('Clone Repo') {
             steps {
                 git url: 'https://github.com/itihask56/auth_backend.git', branch: 'main'
             }
         }
-    }
-    stages {
-       stage('Setup Environment') {
+
+        stage('Setup Environment') {
             steps {
                 sh '''
                 echo "$ENV_VARS" > .env
                 '''
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
-                sh 'npm test' // or node index.js
-            }
-        }
-       stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Run Server') {
-            steps {
-                sh 'node index.js'  // or your start script
             }
         }
 
+        stage('Run Tests') {
+            steps {
+                sh 'npm test' // You can change this to 'npm run dev' or your script
+            }
+        }
+
+        stage('Run Server') {
+            steps {
+                sh 'node index.js'  // Or use: npm start
+            }
+        }
     }
+
     post {
         success {
             echo '✅ Build completed successfully!'
