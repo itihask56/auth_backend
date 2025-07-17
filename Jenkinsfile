@@ -29,7 +29,7 @@ pipeline {
                 sh "docker rm loginform_container || true"
                 
                 // Run new container
-                sh "docker run -d -p 3000:3000 --name loginform_container $DOCKER_IMAGE"
+                sh "docker run --env-file backend/.env -d -p 3000:4040 --name loginform_container $DOCKER_IMAGE"
             }
         }
     }
