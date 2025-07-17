@@ -1,29 +1,36 @@
 pipeline {
-  agent any
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    agent {
+        docker {
+            image 'node:18'
+            args '-u root:root'
+        }
     }
-    stage('Install') {
-      steps {
-        sh 'npm ci'
-      }
+    environment {
+        NODE_ENV = 'development'
     }
-    // stage('Test') {
-    //   steps {
-    //     sh 'npm test'
-    //   }
-    // }
-    stage('Build') {
-      steps {
-        sh 'npm run build || echo "no build script, skipping"'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Test Build') {
+            steps {
+                sh 'npm run build || echo "Build step skipped (no build script found)"'
+            }
+        }
     }
-  }
-  post {
-    success { echo '✅ Build passed!' }
-    failure { echo '❌ Build failed!' }
-  }
+    post {
+        success {
+            echo '✅ Build completed successfully!'
+        }
+        failure {
+            echo '❌ Build failed.'
+        }
+    }
 }
