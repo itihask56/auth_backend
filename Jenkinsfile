@@ -1,54 +1,36 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-u root:root'
-        }
-    }
+    agent any
+
     environment {
-        ENV_VARS = credentials('ENV_CONTENT')  // This loads .env content
+        DOCKER_IMAGE = 'loginform-node-app'    // Local image ka naam
+        DOCKERFILE_PATH = 'backend/Dockerfile'
+        APP_DIR = 'backend'
     }
 
     stages {
-        stage('Clone Repo') {
-            steps {
-                git url: 'https://github.com/itihask56/auth_backend.git', branch: 'main'
-            }
-        }
-
-        stage('Setup Environment') {
-            steps {
-                sh '''
-                echo "$ENV_VARS" > .env
-                '''
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                dir("${APP_DIR}") {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Docker Image') {
             steps {
-                sh 'npm test' // You can change this to 'npm run dev' or your script
+                sh "docker build -t $DOCKER_IMAGE -f $DOCKERFILE_PATH $APP_DIR"
             }
         }
 
-        stage('Run Server') {
+        stage('Run Docker Container') {
             steps {
-                sh 'node index.js'  // Or use: npm start
+                // Stop if already running
+                sh "docker stop loginform_container || true"
+                sh "docker rm loginform_container || true"
+                
+                // Run new container
+                sh "docker run -d -p 3000:3000 --name loginform_container $DOCKER_IMAGE"
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Build completed successfully!'
-        }
-        failure {
-            echo '❌ Build failed.'
         }
     }
 }
