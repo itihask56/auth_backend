@@ -14,6 +14,7 @@ pipeline {
                 git url: 'https://github.com/itihask56/auth_backend.git', branch: 'main'
             }
         }
+    }
     stages {
        stage('Setup Environment') {
             steps {
